@@ -1,4 +1,6 @@
+from datetime import datetime
 import itertools
+import traceback
 
 
 class SoJoin:
@@ -6,13 +8,10 @@ class SoJoin:
 		self.sources = sources
 
 	def actions(self):
-		return list[itertools.chain(s.actions() for s in self.sources)]
+		return list(itertools.chain.from_iterable(s.actions() for s in self.sources))
 
 
 class SoJoinTest:
-	# @todo Что-то я немного сомневаюсь, что SoJoin работает корректно.
-	#  И это удобное место, чтобы попробовать написать тест.
-	#  Примеры оформления тестов можно посмотреть в других файлах.
 	pass
 
 
@@ -23,8 +22,22 @@ class SoSafe:
 	def actions(self):
 		try:
 			return self.source.actions()
-		except Exception as e:
-			# @todo #58 Из текста исключения необходимо
-			#  сформировать сообщение для администратора
-			print(e)
+		except Exception:
+			traceback.print_exc()
 			return []
+
+
+class SoNotFlood:
+	def __init__(self, source, interval):
+		self.source = source
+		self.interval = interval
+		self.nexttime = datetime.now()
+
+	def actions(self):
+		if datetime.now() > self.nexttime:
+			actions = self.source.actions()
+			if actions:
+				self.nexttime = datetime.now() + self.interval
+		else:
+			actions = []
+		return actions

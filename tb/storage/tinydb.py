@@ -1,17 +1,17 @@
-from tinydb import TinyDB, Query
+from tinydb import TinyDB, where
 
 
-class TinyDateBase:
-    def __init__(self, filename):
-        self.filename = filename
+class TinyDataBase:
+	def __init__(self, filename):
+		self.filename = filename
 
-    def set(self, name, value):
-        db = TinyDB(self.filename)
-        # @todo #39 нужно использовать update
-        db.insert({'name': name, 'value': value})
+	def set(self, name, value):
+		db = TinyDB(self.filename)
+		db.upsert({'name': name, 'value': value}, where('name') == name)
 
-    def get(self, name):
-        db = TunyDB(self.filename)
-        Value = Query()
-        # должна вернуть последнее значение value
-        return db.search(Value.name == name)[-1]['value']
+	def get(self, name, default=None):
+		db = TinyDB(self.filename)
+		item = db.get(where('name') == name)
+		if item is not None:
+			return item.get('value', default)
+		return default
